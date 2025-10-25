@@ -49,9 +49,9 @@ export default function FPSControls({
   bobEnabled = true,
   minStepFrequency = 0.1, // Hz at slow walk
   maxStepFrequency = 0.8, // Hz at fast walk/jog
-  verticalBobAmplitude = 0.02, // meters
+  verticalBobAmplitude = 0.015, // meters
   lateralBobAmplitude = 0.01, // meters (side sway)
-  bobSmoothing = 4, // how quickly intensity blends (higher = snappier)
+  bobSmoothing = 8, // how quickly intensity blends (higher = snappier)
   speedAmplitudeInfluence = 1, // 0..1, how much speed scales amplitude
   onFootstep,
 
@@ -69,6 +69,7 @@ export default function FPSControls({
   debugBobWidth = 260,
   debugBobHeight = 120,
   debugToggleKey = "KeyB",
+  onLockChange,
 }: {
   speed?: number;
   eyeHeight?: number;
@@ -99,6 +100,7 @@ export default function FPSControls({
   stepSmoothing?: number;
   verticalHarmonic?: number;
   strafeLateralFactor?: number;
+  onLockChange?: (locked: boolean) => void;
 }) {
   const { camera } = useThree();
   const keys = useWASD();
@@ -329,8 +331,15 @@ export default function FPSControls({
 
   return (
     <>
-      {/* Pointer lock for mouse look (disabled on touch devices) */}
-      {!isTouch && <PointerLockControls selector="#r3f-canvas" />}
+      {/* Pointer lock for mouse look (disabled on touch devices)
+          Use built-in PointerLockControls events rather than document listeners. */}
+      {!isTouch && (
+        <PointerLockControls
+          selector="#r3f-canvas"
+          onLock={() => onLockChange?.(true)}
+          onUnlock={() => onLockChange?.(false)}
+        />
+      )}
 
       {/* Debug overlay (top-left fixed) */}
       {debugOn &&
@@ -353,26 +362,10 @@ export default function FPSControls({
         ref={bodyRef}
         colliders={false}
         canSleep={false}
-        linearDamping={8}
+        linearDamping={4}
         angularDamping={1}
         enabledRotations={[false, false, false]}
-        friction={2}
       >
-        {debugOn && (
-          <>
-            <pointLight
-              color="white"
-              intensity={1}
-              distance={6}
-              decay={2}
-              position={[0, eyeHeight - baseOffset, 0]}
-            />
-            <mesh position={[0, eyeHeight - baseOffset, 0]}>
-              <sphereGeometry args={[0.05, 8, 8]} />
-              <meshBasicMaterial color="yellow" />
-            </mesh>
-          </>
-        )}
         <CapsuleCollider
           args={[halfHeight, capsuleRadius]}
           position={[0, baseOffset, 0]}

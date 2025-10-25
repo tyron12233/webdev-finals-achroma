@@ -56,6 +56,7 @@ npm run optimize:draco
 If you use the Draco variant, ensure you configure `GLTFLoader` with `DracoLoader` in your app at load time.
 
 Notes:
+
 - Source files under `public/` are scanned recursively. Already optimized files are skipped if up-to-date.
 - Outputs mirror the original structure under `public/optimized/`.
 - `.gltf` sources are emitted as `.glb` for portability.

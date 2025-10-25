@@ -19,9 +19,11 @@ import Effects from "@/components/Effects";
 export default function SceneCanvas({
   isTouch,
   flashOn,
+  onPointerLockChange,
 }: {
   isTouch: boolean;
   flashOn: boolean;
+  onPointerLockChange?: (locked: boolean) => void;
 }) {
   return (
     <Canvas
@@ -45,18 +47,14 @@ export default function SceneCanvas({
       <fog attach="fog" args={["#0a0a0a", 5, 35]} />
 
       <Suspense fallback={null}>
-        <Physics gravity={[0, -9.81, 0]}>
+        <Physics gravity={[0, -9.81, 0]} debug={!isTouch}>
           <Environment
             preset="night"
             background={false}
             environmentIntensity={0.7}
           />
 
-          <HorrorCorridor
-            position={[2, -0.005, 2]}
-            rotation={[0, 0, 0]}
-            scale={[0.35, 0.35, 0.35]}
-          />
+          <HorrorCorridor position={[2, -0.005, 2]} rotation={[0, 0, 0]} />
 
           {/* Ground */}
           <RigidBody type="fixed" colliders={false}>
@@ -82,10 +80,11 @@ export default function SceneCanvas({
           )}
 
           <FPSControls
-            speed={0.8}
-            eyeHeight={1.85}
-            capsuleHeight={1.0}
-            capsuleRadius={0.3}
+            speed={1.8}
+            eyeHeight={3.35}
+            capsuleHeight={1.85}
+            capsuleRadius={0.25}
+            onLockChange={onPointerLockChange}
           />
 
           {flashOn && <Flashlight />}

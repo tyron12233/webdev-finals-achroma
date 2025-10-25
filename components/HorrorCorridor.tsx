@@ -2,8 +2,9 @@
 
 import { useGLTF } from "@react-three/drei";
 import type { ThreeElements } from "@react-three/fiber";
-import { useLayoutEffect } from "react";
-import type { Object3D } from "three";
+import { useLayoutEffect, useMemo, useState } from "react";
+import type { Group, Object3D } from "three";
+import { RigidBody } from "@react-three/rapier";
 
 /**
  * HorrorCorridor
@@ -17,8 +18,24 @@ import type { Object3D } from "three";
 export default function HorrorCorridor(
   props: ThreeElements["group"] & { url?: string }
 ) {
-  const url = props.url ?? "/optimized/scene-2.glb";
+  const url = props.url ?? "/optimized/scene-5.glb";
   const gltf = useGLTF(url);
+
+  // Find the walls object (named "murs") once the GLTF is loaded
+  const childrenWall = useMemo(() => {
+    if (!gltf.scene) return null;
+    // Ensure world matrices are up-to-date before searching
+    gltf.scene.updateMatrixWorld(true);
+    const found = gltf.scene.getObjectByName("WallGroup") as Object3D | null;
+    if (found) {
+      const colliderMesh = found.clone();
+
+      found.visible = false;
+
+      return colliderMesh;
+    }
+    return null;
+  }, [gltf.scene]);
 
   useLayoutEffect(() => {
     gltf.scene.traverse((obj: Object3D) => {
@@ -35,11 +52,18 @@ export default function HorrorCorridor(
   // Wrap in a group so users can position/scale the model externally via props
   const { url: _ignoreUrl, ...rest } = props as any;
   return (
-    <group {...rest}>
-      <primitive object={gltf.scene} />
+    <group>
+      {/* Visuals */}
+      <primitive object={gltf.scene} {...rest} />
+
+      {childrenWall && (
+        <RigidBody type="fixed" colliders="trimesh" friction={0} {...rest}>
+          <primitive object={childrenWall} rotation={[Math.PI / -180, 0, 0]} />
+        </RigidBody>
+      )}
     </group>
   );
 }
 
-// Preload the model for snappier first render
-useGLTF.preload("/optimized/scene-2.glb");
+// Prevoad the model for snappier first render
+useGLTF.preload("/optimized/scene-5.glb");

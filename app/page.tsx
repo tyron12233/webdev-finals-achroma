@@ -2,7 +2,7 @@
 
 import MobileControls from "@/components/MobileControls";
 import TouchDebug from "@/components/TouchDebug";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Preloader from "@/components/Preloader";
 import useIsTouch from "@/hooks/useIsTouch";
 import useViewportVH from "@/hooks/useViewportVH";
@@ -15,24 +15,6 @@ export default function Home() {
   const [locked, setLocked] = useState(false);
   // Keep viewport height synced to visible area
   useViewportVH();
-
-  useEffect(() => {
-    const onChange = () => {
-      const pl = document.pointerLockElement;
-      setLocked(!!pl);
-
-      console.log("[PointerLock] changed:", {
-        pointerLockElement: pl,
-        locked: !!pl,
-      });
-    };
-    document.addEventListener("pointerlockchange", onChange);
-    document.addEventListener("pointerlockerror", onChange);
-    return () => {
-      document.removeEventListener("pointerlockchange", onChange);
-      document.removeEventListener("pointerlockerror", onChange);
-    };
-  }, []);
 
   return (
     <div
@@ -51,7 +33,14 @@ export default function Home() {
         </div>
       )}
 
-      <SceneCanvas isTouch={isTouch} flashOn={flashOn} />
+      <SceneCanvas
+        isTouch={isTouch}
+        flashOn={flashOn}
+        onPointerLockChange={(v) => {
+          console.log("[page.tsx] pointer lock change:", v);
+          setLocked(v);
+        }}
+      />
       <Preloader />
       {isTouch && (
         <MobileControls onToggleFlashlight={() => setFlashOn((v) => !v)} />

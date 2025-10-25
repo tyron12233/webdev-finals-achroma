@@ -1,68 +1,20 @@
 "use client";
 
-import { Canvas, useFrame } from "@react-three/fiber";
-import {
-  Environment,
-  ContactShadows,
-  Preload,
-  Stats,
-  AdaptiveDpr,
-} from "@react-three/drei";
-import { useRef } from "react";
-import { ACESFilmicToneMapping, type Mesh } from "three";
-import FPSControls from "@/components/FPSControls";
-import { Physics, RigidBody, CuboidCollider } from "@react-three/rapier";
-import HorrorCorridor from "@/components/HorrorCorridor";
-import Flashlight from "@/components/Flashlight";
 import MobileControls from "@/components/MobileControls";
 import TouchDebug from "@/components/TouchDebug";
 import { useEffect, useState } from "react";
-import {
-  Bloom,
-  ChromaticAberration,
-  EffectComposer,
-  HueSaturation,
-  Noise,
-  Vignette,
-} from "@react-three/postprocessing";
 import Preloader from "@/components/Preloader";
-import { Suspense } from "react";
-import { BlendFunction } from "postprocessing";
-
-function useIsTouch() {
-  const [touch, setTouch] = useState(false);
-  useEffect(() => {
-    const isTouch =
-      "ontouchstart" in window || (navigator.maxTouchPoints ?? 0) > 0;
-    setTouch(isTouch);
-  }, []);
-  return touch;
-}
+import useIsTouch from "@/hooks/useIsTouch";
+import useViewportVH from "@/hooks/useViewportVH";
+import SceneCanvas from "@/components/SceneCanvas";
+import PointerLockOverlay from "@/components/PointerLockOverlay";
 
 export default function Home() {
   const isTouch = useIsTouch();
   const [flashOn, setFlashOn] = useState(false);
   const [locked, setLocked] = useState(false);
-  // Maintain a robust viewport height that adapts on iOS/Android when toolbars show/hide
-  useEffect(() => {
-    const updateVh = () => {
-      if (typeof window === "undefined") return;
-      const vh =
-        (window.innerHeight || document.documentElement.clientHeight) * 0.01;
-      document.documentElement.style.setProperty("--vh", `${vh}px`);
-    };
-    updateVh();
-    window.addEventListener("resize", updateVh);
-    window.addEventListener("orientationchange", updateVh);
-    // Some browsers expose visualViewport which fires resize when UI chrome changes
-    const vv = (window as any).visualViewport as VisualViewport | undefined;
-    vv?.addEventListener?.("resize", updateVh);
-    return () => {
-      window.removeEventListener("resize", updateVh);
-      window.removeEventListener("orientationchange", updateVh);
-      vv?.removeEventListener?.("resize", updateVh as any);
-    };
-  }, []);
+  // Keep viewport height synced to visible area
+  useViewportVH();
 
   useEffect(() => {
     const onChange = () => {
@@ -82,16 +34,6 @@ export default function Home() {
     };
   }, []);
 
-  const requestLock = () => {
-    const el = document.getElementById(
-      "r3f-canvas"
-    ) as HTMLCanvasElement | null;
-    if (el && !isTouch) {
-      try {
-        el.requestPointerLock();
-      } catch {}
-    }
-  };
   return (
     <div
       className="fixed inset-0 w-full select-none touch-none"
@@ -109,113 +51,14 @@ export default function Home() {
         </div>
       )}
 
-      <Canvas
-        id="r3f-canvas"
-        shadows={!isTouch}
-        dpr={[1, isTouch ? 1.5 : 2]}
-        gl={{
-          antialias: !isTouch,
-          powerPreference: "high-performance",
-          stencil: false,
-          alpha: false,
-          precision: isTouch ? "mediump" : "highp",
-        }}
-        camera={{ position: [0, 1.6, 5], fov: 70 }}
-        onCreated={({ gl }) => {
-          gl.toneMapping = ACESFilmicToneMapping;
-          gl.toneMappingExposure = 1.0;
-        }}
-      >
-        <color attach="background" args={["#000"]} />
-        <fog attach="fog" args={["#0a0a0a", 5, 35]} />
-
-        <Suspense fallback={null}>
-          <Physics gravity={[0, -9.81, 0]}>
-            <Environment
-              preset="night"
-              background={false}
-              environmentIntensity={0.7}
-            />
-
-            <HorrorCorridor
-              position={[2, -0.005, 2]}
-              rotation={[0, 0, 0]}
-              scale={[0.35, 0.35, 0.35]}
-            />
-
-            {/* Ground as a fixed rigid body with a collider */}
-            <RigidBody type="fixed" colliders={false}>
-              <mesh
-                position={[0, 0, 0]}
-                rotation={[-Math.PI / 2, 0, 0]}
-                receiveShadow
-              >
-                <planeGeometry args={[50, 50]} />
-                <meshStandardMaterial color="#fff" />
-              </mesh>
-              <CuboidCollider args={[25, 0.1, 25]} position={[0, -0.5, 0]} />
-            </RigidBody>
-            {!isTouch && (
-              <ContactShadows
-                position={[0, -0.49, 0]}
-                opacity={0.4}
-                scale={30}
-                blur={3}
-                far={15}
-              />
-            )}
-
-            {/* Player character controller (capsule) */}
-            <FPSControls
-              speed={0.8}
-              eyeHeight={1.85}
-              capsuleHeight={1.0}
-              capsuleRadius={0.3}
-            />
-
-            {/* Head-mounted flashlight that follows the camera */}
-            {flashOn && <Flashlight />}
-          </Physics>
-
-          <EffectComposer enableNormalPass multisampling={isTouch ? 0 : 4}>
-            <HueSaturation saturation={-0.3} />
-
-            <Vignette eskil={false} offset={0.3} darkness={0.6} />
-
-            <Noise
-              opacity={isTouch ? 0.15 : 0.3}
-              blendFunction={BlendFunction.SOFT_LIGHT}
-            />
-
-            <ChromaticAberration offset={[0.001, 0.001]} />
-          </EffectComposer>
-
-          {/* Dynamically adapt DPR on low FPS (mobile) */}
-          {isTouch && <AdaptiveDpr pixelated />}
-
-          {/* Performance panel for debug (top-right); disabled on touch to avoid overhead */}
-          {!isTouch && <Stats className="stats-top-right" />}
-
-          <Preload all />
-        </Suspense>
-      </Canvas>
+      <SceneCanvas isTouch={isTouch} flashOn={flashOn} />
       <Preloader />
       {isTouch && (
         <MobileControls onToggleFlashlight={() => setFlashOn((v) => !v)} />
       )}
       {isTouch && <TouchDebug />}
       {/* Fallback: clickable overlay to force pointer lock on desktop if PLC fails */}
-      {!isTouch && !locked && (
-        <button
-          aria-label="Click to start (locks cursor)"
-          className="absolute inset-0 z-20 grid place-items-center bg-black/20 backdrop-blur-[1px] text-white"
-          onClick={requestLock}
-        >
-          <div className="pointer-events-none select-none rounded-md border border-white/20 bg-black/50 px-4 py-3 text-sm shadow-lg">
-            Click to start · cursor will lock
-          </div>
-        </button>
-      )}
+      <PointerLockOverlay visible={!isTouch && !locked} />
       {/* Crosshair */}
       <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center">
         <div className="h-3 w-3 rounded-full border border-white/60" />

@@ -51,7 +51,9 @@ export default function MobileControls({ onToggleFlashlight }: Props) {
       setHintsFade(true);
       const t = setTimeout(() => {
         setHintsVisible(false);
-        try { localStorage.setItem("touchHintsDismissed", "1"); } catch {}
+        try {
+          localStorage.setItem("touchHintsDismissed", "1");
+        } catch {}
       }, 600);
       return () => clearTimeout(t);
     }
@@ -142,8 +144,8 @@ export default function MobileControls({ onToggleFlashlight }: Props) {
       | undefined;
     const cur = { x: t.clientX, y: t.clientY };
     if (prev) {
-      const dx = (cur.x - prev.x);
-      const dy = (cur.y - prev.y);
+      const dx = cur.x - prev.x;
+      const dy = cur.y - prev.y;
       addLookDelta(dx * lookSensitivity, dy * lookSensitivity);
       lookTravelRef.current += Math.hypot(dx, dy);
       if (!lookedOnce && lookTravelRef.current > 40) setLookedOnce(true);
@@ -161,67 +163,83 @@ export default function MobileControls({ onToggleFlashlight }: Props) {
     (onRightTouchMove as any)._prev = undefined;
   };
 
-  const ui = useMemo(() => (
-    <>
-      {/* Look area: full-screen; lower z so joystick/button are on top */}
-      <div
-        className="absolute inset-0 z-10 touch-none select-none"
-        onTouchStart={onRightTouchStart}
-        onTouchMove={onRightTouchMove}
-        onTouchEnd={onRightTouchEnd}
-        onTouchCancel={onRightTouchEnd}
-        aria-hidden
-      />
+  const ui = useMemo(
+    () => (
+      <>
+        {/* Look area: full-screen; lower z so joystick/button are on top */}
+        <div
+          className="absolute inset-0 z-10 touch-none select-none"
+          onTouchStart={onRightTouchStart}
+          onTouchMove={onRightTouchMove}
+          onTouchEnd={onRightTouchEnd}
+          onTouchCancel={onRightTouchEnd}
+          aria-hidden
+        />
 
-      {/* Left: movement joystick (higher z) */}
-      <div
-        className="absolute left-3 bottom-3 h-36 w-36 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 touch-none select-none z-20"
-        onTouchStart={onLeftTouchStart}
-        onTouchMove={onLeftTouchMove}
-        onTouchEnd={onLeftTouchEnd}
-        onTouchCancel={onLeftTouchEnd}
-      >
-        <div className="relative h-full w-full grid place-items-center">
+        {/* Left: movement joystick (higher z) */}
+        <div
+          className="absolute left-3 bottom-3 h-36 w-36 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 touch-none select-none z-20"
+          onTouchStart={onLeftTouchStart}
+          onTouchMove={onLeftTouchMove}
+          onTouchEnd={onLeftTouchEnd}
+          onTouchCancel={onLeftTouchEnd}
+        >
+          <div className="relative h-full w-full grid place-items-center">
+            <div
+              className="h-6 w-6 rounded-full bg-white/50"
+              ref={stickRef}
+              style={{ transform: "translate(0,0)" }}
+            />
+          </div>
+        </div>
+
+        {/* Flashlight toggle button (topmost) */}
+        <button
+          type="button"
+          aria-label="Toggle flashlight"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFlashlight?.();
+          }}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onTouchMove={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleFlashlight?.();
+          }}
+          className="absolute bottom-3 right-3 z-30 h-12 px-4 rounded-lg bg-white/10 border border-white/20 text-white text-sm active:scale-95"
+        >
+          Flashlight
+        </button>
+
+        {/* Onboarding hints overlay */}
+        {hintsVisible && (
           <div
-            className="h-6 w-6 rounded-full bg-white/50"
-            ref={stickRef}
-            style={{ transform: "translate(0,0)" }}
-          />
-        </div>
-      </div>
-
-      {/* Flashlight toggle button (topmost) */}
-      <button
-        type="button"
-        aria-label="Toggle flashlight"
-        onClick={(e) => { e.stopPropagation(); onToggleFlashlight?.(); }}
-        onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
-        onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
-        onTouchEnd={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onToggleFlashlight?.();
-        }}
-        className="absolute bottom-3 right-3 z-30 h-12 px-4 rounded-lg bg-white/10 border border-white/20 text-white text-sm active:scale-95"
-      >
-        Flashlight
-      </button>
-
-      {/* Onboarding hints overlay */}
-      {hintsVisible && (
-        <div className={`pointer-events-none absolute inset-0 z-[25] transition-opacity duration-500 ${hintsFade ? "opacity-0" : "opacity-100"}`}>
-          {/* Dim corners slightly to hint UI */}
-          <div className="absolute left-3 bottom-3 h-36 w-36 rounded-full border-2 border-white/20" />
-          <div className="absolute left-5 bottom-40 text-xs text-white/70 max-w-[50vw]">
-            Use this joystick to move
+            className={`pointer-events-none absolute inset-0 z-[25] transition-opacity duration-500 ${
+              hintsFade ? "opacity-0" : "opacity-100"
+            }`}
+          >
+            {/* Dim corners slightly to hint UI */}
+            <div className="absolute left-3 bottom-3 h-36 w-36 rounded-full border-2 border-white/20" />
+            <div className="absolute left-5 bottom-40 text-xs text-white/70 max-w-[50vw]">
+              Use this joystick to move
+            </div>
+            <div className="absolute right-4 bottom-4 text-xs text-white/70">
+              Drag anywhere to look
+            </div>
           </div>
-          <div className="absolute right-4 bottom-4 text-xs text-white/70">
-            Drag anywhere to look
-          </div>
-        </div>
-      )}
-    </>
-  ), [hintsVisible, hintsFade]);
+        )}
+      </>
+    ),
+    [hintsVisible, hintsFade]
+  );
 
   if (!visible) return null;
   return <div className="pointer-events-auto absolute inset-0 z-20">{ui}</div>;

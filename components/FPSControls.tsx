@@ -344,15 +344,7 @@ export default function FPSControls({
       debugDataRef.current.lateralBobAmplitude = lateralBobAmplitude;
     }
   });
-
-  // Ensure initial body position above ground
-  useEffect(() => {
-    const body = bodyRef.current;
-    if (!body) return;
-    const startY = baseOffset + 0.01;
-    body.setTranslation({ x: 0, y: startY, z: 5 }, true);
-  }, [baseOffset]);
-
+  
   return (
     <>
       {/* Pointer lock for mouse look (disabled on touch devices)

@@ -36,7 +36,7 @@ type Para = {
  */
 // Tweak subtitle timing here; the overlay will use these directly
 const SUBTITLE_OPTS = {
-  maxLineChars: 64, // wrapping width for game-style lines
+  maxLineChars: 194, // wrapping width for game-style lines
   // Either use fixed per-line duration:
   lineDurationMs: 2600,
   // Or switch to words-per-minute timing by setting wpm > 0 (lineDurationMs ignored)
@@ -92,18 +92,18 @@ export default function RadioNarration() {
             atMs: 0,
             text: "Police were called to a small suburban home earlier this evening after neighbors reported...",
             options: {
-              lineDurationMs: 4000,
+              lineDurationMs: 3400,
             },
           },
           {
-            atMs: 4000,
+            atMs: 3400,
             text: "erratic behavior...",
             options: {
               lineDurationMs: 400,
             },
           },
           {
-            atMs: 4400,
+            atMs: 3800,
             text: "and a persistent, high-pitched wailing. What they found has shocked even veteran officers.",
             options: {
               lineDurationMs: 3000,
@@ -226,11 +226,14 @@ export default function RadioNarration() {
           const buffer = await decode(para.url, ac.signal);
           if (ac.signal.aborted) break;
 
-          // Create a BufferSource into the ambient group
+          // Create a BufferSource into the ambient group, via a local gain node so we can set radio volume
           const src = sound.context.createBufferSource();
           src.buffer = buffer;
-          const gain = sound.getGroupNode("ambient");
-          src.connect(gain);
+          const groupGain = sound.getGroupNode("ambient");
+          const radioGain = sound.context.createGain();
+          radioGain.gain.value = 0.25; // reduce radio loudness (0..1)
+          src.connect(radioGain);
+          radioGain.connect(groupGain);
 
           // Keep track of current subtitle index
           setCurrentIndex(i);
@@ -247,7 +250,12 @@ export default function RadioNarration() {
 
           const onEnded = () => {
             ended = true;
-            src.disconnect();
+            try {
+              src.disconnect();
+            } catch {}
+            try {
+              radioGain.disconnect();
+            } catch {}
             clearScheduled();
           };
           src.addEventListener("ended", onEnded);

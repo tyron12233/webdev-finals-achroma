@@ -44,7 +44,7 @@ export default function Home() {
   const isTouch = useIsTouch();
   const [flashOn, setFlashOn] = useState(false);
   return (
-    <div className="h-[100svh] w-full relative select-none">
+    <div className="fixed inset-0 h-[100dvh] w-full select-none touch-none">
       {/* Hint overlay */}
       {!isTouch && (
         <div className="pointer-events-none absolute inset-x-0 top-4 z-10 grid place-items-center text-xs text-white/80">

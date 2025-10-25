@@ -17,8 +17,8 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
         <meta name="theme-color" content="#000000" />
       </head>
-      <body className="antialiased bg-black text-white min-h-screen">
-        <main className="min-h-screen">{children}</main>
+      <body className="antialiased bg-black text-white">
+        <main className="h-full w-full">{children}</main>
       </body>
     </html>
   );

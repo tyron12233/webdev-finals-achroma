@@ -45,6 +45,9 @@ export default function MobileControls({ onToggleFlashlight }: Props) {
 
   // Left area handlers (movement)
   const onLeftTouchStart = (e: React.TouchEvent) => {
+    // Prevent page gestures on iOS
+    e.preventDefault();
+    e.stopPropagation();
     if (leftId.current != null) return;
     const t = e.changedTouches[0];
     leftId.current = t.identifier;
@@ -52,6 +55,8 @@ export default function MobileControls({ onToggleFlashlight }: Props) {
     updateStickVisual(0, 0);
   };
   const onLeftTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (leftId.current == null || !leftCenter.current) return;
     const t = getTouchById(e, leftId.current);
     if (!t) return;
@@ -70,6 +75,8 @@ export default function MobileControls({ onToggleFlashlight }: Props) {
     updateStickVisual(nx * maxRadius, ny * maxRadius);
   };
   const onLeftTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     const id = leftId.current;
     if (id == null) return;
     const t = getTouchById(e, id);
@@ -88,11 +95,15 @@ export default function MobileControls({ onToggleFlashlight }: Props) {
 
   // Right area handlers (look)
   const onRightTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (rightId.current != null) return;
     const t = e.changedTouches[0];
     rightId.current = t.identifier;
   };
   const onRightTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (rightId.current == null) return;
     const t = getTouchById(e, rightId.current);
     if (!t) return;
@@ -105,6 +116,8 @@ export default function MobileControls({ onToggleFlashlight }: Props) {
     (onRightTouchMove as any)._prev = cur;
   };
   const onRightTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     const id = rightId.current;
     if (id == null) return;
     const t = getTouchById(e, id);
@@ -144,6 +157,7 @@ export default function MobileControls({ onToggleFlashlight }: Props) {
         type="button"
         aria-label="Toggle flashlight"
         onClick={onToggleFlashlight}
+        onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFlashlight?.(); }}
         className="absolute bottom-3 right-3 h-12 px-4 rounded-lg bg-white/10 border border-white/20 text-white text-sm active:scale-95"
       >
         Flashlight

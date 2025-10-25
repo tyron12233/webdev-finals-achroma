@@ -2,13 +2,18 @@
 
 /* Minimal global styles for a clean 3D canvas starter */
 html, body {
-  height: 100%;
+  /* Use dynamic viewport height on mobile to avoid iOS 100vh issues */
+  height: 100dvh;
+  /* Prevent page scrolling/overscroll bounce during gameplay */
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body {
   margin: 0;
   background: #000; /* fallback if Tailwind classes are not applied */
   color: #fff;
+  -webkit-overflow-scrolling: auto; /* disable momentum scroll on iOS */
 }
 
 canvas {

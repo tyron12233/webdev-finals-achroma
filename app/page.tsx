@@ -6,6 +6,7 @@ import {
   ContactShadows,
   SoftShadows,
   Preload,
+  Stats,
 } from "@react-three/drei";
 import { useRef } from "react";
 import { ACESFilmicToneMapping, type Mesh } from "three";
@@ -133,6 +134,9 @@ export default function Home() {
 
             {/* <Bloom luminanceThreshold={1.2} intensity={1.2} mipmapBlur /> */}
           </EffectComposer>
+
+          {/* Performance panel for debug (top-right) */}
+          <Stats className="stats-top-right" />
 
           <Preload all />
         </Suspense>

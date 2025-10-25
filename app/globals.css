@@ -19,3 +19,13 @@ body {
 canvas {
   display: block;
 }
+
+/* Position the drei <Stats> panel at the top-right */
+.stats-top-right {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  left: auto !important;
+  pointer-events: none !important;
+  z-index: 50 !important;
+}

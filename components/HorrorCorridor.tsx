@@ -58,7 +58,11 @@ export default function HorrorCorridor(
 
       {childrenWall && (
         <RigidBody type="fixed" colliders="trimesh" friction={0} {...rest}>
-          <primitive object={childrenWall} rotation={[Math.PI / -180, 0, 0]} />
+          <primitive
+            object={childrenWall}
+            rotation={[Math.PI / -180, 0, 0]}
+            visible={false}
+          />
         </RigidBody>
       )}
     </group>

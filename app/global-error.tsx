@@ -3,8 +3,16 @@
 import "./globals.css";
 import { useMemo, useState } from "react";
 
-export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
-  const [showDetails, setShowDetails] = useState(process.env.NODE_ENV !== "production");
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  const [showDetails, setShowDetails] = useState(
+    process.env.NODE_ENV !== "production"
+  );
 
   const reportText = useMemo(() => {
     const lines: string[] = [];

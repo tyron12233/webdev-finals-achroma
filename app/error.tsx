@@ -8,7 +8,9 @@ type Props = {
 };
 
 export default function ErrorPage({ error, reset }: Props) {
-  const [showDetails, setShowDetails] = useState(process.env.NODE_ENV !== "production");
+  const [showDetails, setShowDetails] = useState(
+    process.env.NODE_ENV !== "production"
+  );
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -50,7 +52,9 @@ export default function ErrorPage({ error, reset }: Props) {
       ta.value = reportText;
       document.body.appendChild(ta);
       ta.select();
-      try { document.execCommand("copy"); } catch {}
+      try {
+        document.execCommand("copy");
+      } catch {}
       document.body.removeChild(ta);
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);

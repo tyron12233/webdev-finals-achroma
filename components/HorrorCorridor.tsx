@@ -17,7 +17,7 @@ import type { Object3D } from "three";
 export default function HorrorCorridor(
   props: ThreeElements["group"] & { url?: string }
 ) {
-  const url = props.url ?? "/scene.glb";
+  const url = props.url ?? "/optimized/scene-2.glb";
   const gltf = useGLTF(url);
 
   useLayoutEffect(() => {
@@ -34,8 +34,12 @@ export default function HorrorCorridor(
 
   // Wrap in a group so users can position/scale the model externally via props
   const { url: _ignoreUrl, ...rest } = props as any;
-  return <group {...rest}><primitive object={gltf.scene} /></group>;
+  return (
+    <group {...rest}>
+      <primitive object={gltf.scene} />
+    </group>
+  );
 }
 
 // Preload the model for snappier first render
-useGLTF.preload("/scene.glb");
+useGLTF.preload("/optimized/scene-2.glb");

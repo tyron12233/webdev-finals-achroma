@@ -35,6 +35,31 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
+## Model optimization (GLB/GLTF)
+
+Use the built-in scripts to optimize models in `public/` for production. Optimized files are written to `public/optimized/` with the same relative paths.
+
+- Optimize losslessly (no extra runtime decoders required):
+
+```bash
+npm run optimize
+```
+
+This runs glTF-Transform's `optimize` preset (prune, dedupe, reorder, quantize). It keeps models compatible with default three.js GLTFLoader.
+
+- Optional: Draco-compress geometry (smaller files, requires decoder at runtime):
+
+```bash
+npm run optimize:draco
+```
+
+If you use the Draco variant, ensure you configure `GLTFLoader` with `DracoLoader` in your app at load time.
+
+Notes:
+- Source files under `public/` are scanned recursively. Already optimized files are skipped if up-to-date.
+- Outputs mirror the original structure under `public/optimized/`.
+- `.gltf` sources are emitted as `.glb` for portability.
+
 ## FPSControls configuration
 
 `components/FPSControls.tsx` exposes a few props to tune the camera head-bob and movement feel:

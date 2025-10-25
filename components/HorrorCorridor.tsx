@@ -30,11 +30,10 @@ export default function HorrorCorridor(
     if (found) {
       const colliderMesh = found.clone();
 
-      found.visible = false;
-
       setTimeout(() => {
+        found.visible = false;
         colliderMesh.visible = false;
-      }, 100);
+      }, 1000);
 
       return colliderMesh;
     }

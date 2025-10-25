@@ -62,7 +62,10 @@ export default function FPSControls({
   // Cadence interpolation and shaping
   stepSmoothing = 6, // how quickly cadence follows speed
   verticalHarmonic = 0.15, // adds subtle 4th harmonic to vertical for realism
-  strafeLateralFactor = 0.6, // lateral sway weight when strafing vs forward
+  strafeLateralFactor = 0.9, // lateral sway weight when strafing vs forward
+  // How quickly bob offsets follow when moving vs. ease back when idle
+  bobFollowSmoothing = 18, // higher = follows target offsets faster while moving
+  idleReturnSmoothing = 6, // higher = returns to neutral faster when you let go
 
   // Debug
   debugBob = false,
@@ -100,6 +103,8 @@ export default function FPSControls({
   stepSmoothing?: number;
   verticalHarmonic?: number;
   strafeLateralFactor?: number;
+  bobFollowSmoothing?: number;
+  idleReturnSmoothing?: number;
   onLockChange?: (locked: boolean) => void;
 }) {
   const { camera } = useThree();
@@ -113,6 +118,8 @@ export default function FPSControls({
     intensity: 0,
     lastPhase: 0,
     smoothedHz: 0,
+    smoothedVertical: 0,
+    smoothedLateral: 0,
   });
   const bodyRef = useRef<RapierRigidBody>(null);
   // Debug overlay data stream
@@ -289,6 +296,16 @@ export default function FPSControls({
         ampScale;
     }
 
+    // Smoothly follow offsets while moving and ease back to neutral when idle
+    const targetVertical = isMoving ? vertical : 0;
+    const targetLateral = isMoving ? lateral : 0;
+    const follow = isMoving ? bobFollowSmoothing : idleReturnSmoothing;
+    const k = Math.min(1, Math.max(0, follow * delta));
+    bobRef.current.smoothedVertical +=
+      (targetVertical - bobRef.current.smoothedVertical) * k;
+    bobRef.current.smoothedLateral +=
+      (targetLateral - bobRef.current.smoothedLateral) * k;
+
     // Apply mobile look deltas to camera
     if (usingTouch) {
       const { dx, dy } = consumeLookDelta();
@@ -305,10 +322,17 @@ export default function FPSControls({
 
     // Place camera at eye height above feet + bob; feetY = centerY - baseOffset
     const t = body.translation();
-    camera.position.set(t.x, t.y - baseOffset + eyeHeight + vertical, t.z);
-    if (bobEnabled && lateral !== 0) {
+    camera.position.set(
+      t.x,
+      t.y -
+        baseOffset +
+        eyeHeight +
+        (bobEnabled ? bobRef.current.smoothedVertical : 0),
+      t.z
+    );
+    if (bobEnabled) {
       // Add subtle lateral sway along camera's right vector
-      camera.position.addScaledVector(right, lateral);
+      camera.position.addScaledVector(right, bobRef.current.smoothedLateral);
     }
 
     // Update debug overlay data

@@ -8,6 +8,7 @@ import useIsTouch from "@/hooks/useIsTouch";
 import useViewportVH from "@/hooks/useViewportVH";
 import SceneCanvas from "@/components/SceneCanvas";
 import PointerLockOverlay from "@/components/PointerLockOverlay";
+import RadioSubtitleOverlay from "@/components/RadioSubtitleOverlay";
 
 export default function Home() {
   const isTouch = useIsTouch();
@@ -42,6 +43,8 @@ export default function Home() {
         }}
       />
       <Preloader />
+      {/* Radio narration subtitles (screen-space UI, outside Canvas) */}
+      <RadioSubtitleOverlay />
       {isTouch && (
         <MobileControls onToggleFlashlight={() => setFlashOn((v) => !v)} />
       )}

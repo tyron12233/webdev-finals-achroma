@@ -21,6 +21,11 @@ function useIsTouch(): boolean {
 export default function MobileControls({ onToggleFlashlight }: Props) {
   const isTouch = useIsTouch();
   const [visible, setVisible] = useState(false);
+  const [movedOnce, setMovedOnce] = useState(false);
+  const [lookedOnce, setLookedOnce] = useState(false);
+  const [hintsVisible, setHintsVisible] = useState(true);
+  const [hintsFade, setHintsFade] = useState(false);
+  const lookTravelRef = useRef(0);
 
   useEffect(() => {
     setVisible(isTouch);
@@ -30,6 +35,27 @@ export default function MobileControls({ onToggleFlashlight }: Props) {
       setMoveAxes(0, 0);
     }
   }, [isTouch]);
+
+  // Show hints only once per session (persist across reloads)
+  useEffect(() => {
+    if (!isTouch) return;
+    try {
+      const dismissed = localStorage.getItem("touchHintsDismissed");
+      if (dismissed === "1") setHintsVisible(false);
+    } catch {}
+  }, [isTouch]);
+
+  useEffect(() => {
+    if (!hintsVisible) return;
+    if (movedOnce && lookedOnce) {
+      setHintsFade(true);
+      const t = setTimeout(() => {
+        setHintsVisible(false);
+        try { localStorage.setItem("touchHintsDismissed", "1"); } catch {}
+      }, 600);
+      return () => clearTimeout(t);
+    }
+  }, [movedOnce, lookedOnce, hintsVisible]);
 
   // Left joystick state
   const leftId = useRef<number | null>(null);
@@ -74,6 +100,7 @@ export default function MobileControls({ onToggleFlashlight }: Props) {
     const moveY = -ny * dead; // forward is up (negative screen y)
     setMoveAxes(moveX, moveY);
     updateStickVisual(nx * maxRadius, ny * maxRadius);
+    if (!movedOnce && dist > deadZone * 1.25) setMovedOnce(true);
   };
   const onLeftTouchEnd = (e: React.TouchEvent) => {
     e.preventDefault();
@@ -101,6 +128,7 @@ export default function MobileControls({ onToggleFlashlight }: Props) {
     if (rightId.current != null) return;
     const t = e.changedTouches[0];
     rightId.current = t.identifier;
+    (onRightTouchMove as any)._prev = { x: t.clientX, y: t.clientY };
   };
   const onRightTouchMove = (e: React.TouchEvent) => {
     e.preventDefault();
@@ -114,10 +142,11 @@ export default function MobileControls({ onToggleFlashlight }: Props) {
       | undefined;
     const cur = { x: t.clientX, y: t.clientY };
     if (prev) {
-      addLookDelta(
-        (cur.x - prev.x) * lookSensitivity,
-        (cur.y - prev.y) * lookSensitivity
-      );
+      const dx = (cur.x - prev.x);
+      const dy = (cur.y - prev.y);
+      addLookDelta(dx * lookSensitivity, dy * lookSensitivity);
+      lookTravelRef.current += Math.hypot(dx, dy);
+      if (!lookedOnce && lookTravelRef.current > 40) setLookedOnce(true);
     }
     (onRightTouchMove as any)._prev = cur;
   };
@@ -132,57 +161,67 @@ export default function MobileControls({ onToggleFlashlight }: Props) {
     (onRightTouchMove as any)._prev = undefined;
   };
 
-  const ui = useMemo(
-    () => (
-      <>
-        {/* Left: movement joystick */}
-        <div
-          className="absolute left-3 bottom-3 h-36 w-36 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 touch-none select-none"
-          onTouchStart={onLeftTouchStart}
-          onTouchMove={onLeftTouchMove}
-          onTouchEnd={onLeftTouchEnd}
-          onTouchCancel={onLeftTouchEnd}
-        >
-          <div className="relative h-full w-full grid place-items-center">
-            <div
-              className="h-6 w-6 rounded-full bg-white/50"
-              ref={stickRef}
-              style={{ transform: "translate(0,0)" }}
-            />
+  const ui = useMemo(() => (
+    <>
+      {/* Look area: full-screen; lower z so joystick/button are on top */}
+      <div
+        className="absolute inset-0 z-10 touch-none select-none"
+        onTouchStart={onRightTouchStart}
+        onTouchMove={onRightTouchMove}
+        onTouchEnd={onRightTouchEnd}
+        onTouchCancel={onRightTouchEnd}
+        aria-hidden
+      />
+
+      {/* Left: movement joystick (higher z) */}
+      <div
+        className="absolute left-3 bottom-3 h-36 w-36 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 touch-none select-none z-20"
+        onTouchStart={onLeftTouchStart}
+        onTouchMove={onLeftTouchMove}
+        onTouchEnd={onLeftTouchEnd}
+        onTouchCancel={onLeftTouchEnd}
+      >
+        <div className="relative h-full w-full grid place-items-center">
+          <div
+            className="h-6 w-6 rounded-full bg-white/50"
+            ref={stickRef}
+            style={{ transform: "translate(0,0)" }}
+          />
+        </div>
+      </div>
+
+      {/* Flashlight toggle button (topmost) */}
+      <button
+        type="button"
+        aria-label="Toggle flashlight"
+        onClick={(e) => { e.stopPropagation(); onToggleFlashlight?.(); }}
+        onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
+        onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggleFlashlight?.();
+        }}
+        className="absolute bottom-3 right-3 z-30 h-12 px-4 rounded-lg bg-white/10 border border-white/20 text-white text-sm active:scale-95"
+      >
+        Flashlight
+      </button>
+
+      {/* Onboarding hints overlay */}
+      {hintsVisible && (
+        <div className={`pointer-events-none absolute inset-0 z-[25] transition-opacity duration-500 ${hintsFade ? "opacity-0" : "opacity-100"}`}>
+          {/* Dim corners slightly to hint UI */}
+          <div className="absolute left-3 bottom-3 h-36 w-36 rounded-full border-2 border-white/20" />
+          <div className="absolute left-5 bottom-40 text-xs text-white/70 max-w-[50vw]">
+            Use this joystick to move
+          </div>
+          <div className="absolute right-4 bottom-4 text-xs text-white/70">
+            Drag anywhere to look
           </div>
         </div>
-
-        {/* Right: look drag area (invisible, but show a subtle hint) */}
-        <div
-          className="absolute right-0 bottom-0 top-0 w-1/2 touch-none select-none"
-          onTouchStart={onRightTouchStart}
-          onTouchMove={onRightTouchMove}
-          onTouchEnd={onRightTouchEnd}
-          onTouchCancel={onRightTouchEnd}
-        >
-          <div className="absolute bottom-3 right-3 text-[10px] text-white/50">
-            drag to look
-          </div>
-        </div>
-
-        {/* Flashlight toggle button */}
-        <button
-          type="button"
-          aria-label="Toggle flashlight"
-          onClick={onToggleFlashlight}
-          onTouchEnd={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onToggleFlashlight?.();
-          }}
-          className="absolute bottom-3 right-3 h-12 px-4 rounded-lg bg-white/10 border border-white/20 text-white text-sm active:scale-95"
-        >
-          Flashlight
-        </button>
-      </>
-    ),
-    []
-  );
+      )}
+    </>
+  ), [hintsVisible, hintsFade]);
 
   if (!visible) return null;
   return <div className="pointer-events-auto absolute inset-0 z-20">{ui}</div>;

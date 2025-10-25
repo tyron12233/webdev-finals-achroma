@@ -1,13 +1,7 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import {
-  Environment,
-  ContactShadows,
-  SoftShadows,
-  Preload,
-  Stats,
-} from "@react-three/drei";
+import { Environment, ContactShadows, Preload, Stats, AdaptiveDpr } from "@react-three/drei";
 import { useRef } from "react";
 import { ACESFilmicToneMapping, type Mesh } from "three";
 import FPSControls from "@/components/FPSControls";
@@ -16,20 +10,10 @@ import HorrorCorridor from "@/components/HorrorCorridor";
 import Flashlight from "@/components/Flashlight";
 import MobileControls from "@/components/MobileControls";
 import { useEffect, useState } from "react";
-import {
-  Bloom,
-  ChromaticAberration,
-  DepthOfField,
-  EffectComposer,
-  HueSaturation,
-  Noise,
-  SSAO,
-  ToneMapping,
-  Vignette,
-} from "@react-three/postprocessing";
+import { Bloom, ChromaticAberration, EffectComposer, HueSaturation, Noise, Vignette } from "@react-three/postprocessing";
 import Preloader from "@/components/Preloader";
 import { Suspense } from "react";
-import { BlendFunction, ToneMappingMode } from "postprocessing";
+import { BlendFunction } from "postprocessing";
 
 function useIsTouch() {
   const [touch, setTouch] = useState(false);
@@ -54,14 +38,15 @@ export default function Home() {
       )}
       {isTouch && (
         <div className="pointer-events-none absolute inset-x-0 top-4 z-10 grid place-items-center text-xs text-white/80">
-          <p>Use left joystick to move · drag right to look</p>
+          <p>Use left joystick to move · drag anywhere to look</p>
         </div>
       )}
 
       <Canvas
         id="r3f-canvas"
-        shadows
-        gl={{}}
+        shadows={!isTouch}
+        dpr={[1, isTouch ? 1.5 : 2]}
+        gl={{ antialias: !isTouch, powerPreference: "high-performance", stencil: false, alpha: false, precision: isTouch ? "mediump" : "highp" }}
         camera={{ position: [0, 1.6, 5], fov: 70 }}
         onCreated={({ gl }) => {
           gl.toneMapping = ACESFilmicToneMapping;
@@ -97,13 +82,14 @@ export default function Home() {
               </mesh>
               <CuboidCollider args={[25, 0.1, 25]} position={[0, -0.5, 0]} />
             </RigidBody>
+            {!isTouch && (
             <ContactShadows
               position={[0, -0.49, 0]}
               opacity={0.4}
               scale={30}
               blur={3}
               far={15}
-            />
+            />)}
 
             {/* Player character controller (capsule) */}
             <FPSControls
@@ -117,26 +103,21 @@ export default function Home() {
             {flashOn && <Flashlight />}
           </Physics>
 
-          <EffectComposer enableNormalPass>
+          <EffectComposer enableNormalPass multisampling={isTouch ? 0 : 4}>
             <HueSaturation saturation={-0.3} />
 
             <Vignette eskil={false} offset={0.3} darkness={0.6} />
-            <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
 
-            <Noise opacity={0.3} blendFunction={BlendFunction.SOFT_LIGHT} />
+            <Noise opacity={isTouch ? 0.15 : 0.3} blendFunction={BlendFunction.SOFT_LIGHT} />
 
             <ChromaticAberration offset={[0.001, 0.001]} />
-            <DepthOfField
-              focusDistance={0.02}
-              focalLength={0.03}
-              bokehScale={2}
-            />
-
-            {/* <Bloom luminanceThreshold={1.2} intensity={1.2} mipmapBlur /> */}
           </EffectComposer>
 
-          {/* Performance panel for debug (top-right) */}
-          <Stats className="stats-top-right" />
+          {/* Dynamically adapt DPR on low FPS (mobile) */}
+          {isTouch && <AdaptiveDpr pixelated />}
+
+          {/* Performance panel for debug (top-right); disabled on touch to avoid overhead */}
+          {!isTouch && <Stats className="stats-top-right" />}
 
           <Preload all />
         </Suspense>

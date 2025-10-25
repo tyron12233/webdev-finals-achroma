@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+/* Minimal global styles for a clean 3D canvas starter */
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #000; /* fallback if Tailwind classes are not applied */
+  color: #fff;
+}
+
+canvas {
+  display: block;
+}

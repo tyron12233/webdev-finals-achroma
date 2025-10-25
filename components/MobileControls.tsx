@@ -11,7 +11,8 @@ type Props = {
 function useIsTouch(): boolean {
   const [touch, setTouch] = useState(false);
   useEffect(() => {
-    const isTouch = ("ontouchstart" in window) || (navigator.maxTouchPoints ?? 0) > 0;
+    const isTouch =
+      "ontouchstart" in window || (navigator.maxTouchPoints ?? 0) > 0;
     setTouch(isTouch);
   }, []);
   return touch;
@@ -108,10 +109,15 @@ export default function MobileControls({ onToggleFlashlight }: Props) {
     const t = getTouchById(e, rightId.current);
     if (!t) return;
     // Use movementX/movementY like behavior by tracking previous positions
-    const prev = (onRightTouchMove as any)._prev as { x: number; y: number } | undefined;
+    const prev = (onRightTouchMove as any)._prev as
+      | { x: number; y: number }
+      | undefined;
     const cur = { x: t.clientX, y: t.clientY };
     if (prev) {
-      addLookDelta((cur.x - prev.x) * lookSensitivity, (cur.y - prev.y) * lookSensitivity);
+      addLookDelta(
+        (cur.x - prev.x) * lookSensitivity,
+        (cur.y - prev.y) * lookSensitivity
+      );
     }
     (onRightTouchMove as any)._prev = cur;
   };
@@ -126,51 +132,60 @@ export default function MobileControls({ onToggleFlashlight }: Props) {
     (onRightTouchMove as any)._prev = undefined;
   };
 
-  const ui = useMemo(() => (
-    <>
-      {/* Left: movement joystick */}
-      <div
-        className="absolute left-3 bottom-3 h-36 w-36 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 touch-none select-none"
-        onTouchStart={onLeftTouchStart}
-        onTouchMove={onLeftTouchMove}
-        onTouchEnd={onLeftTouchEnd}
-        onTouchCancel={onLeftTouchEnd}
-      >
-        <div className="relative h-full w-full grid place-items-center">
-          <div className="h-6 w-6 rounded-full bg-white/50" ref={stickRef} style={{ transform: "translate(0,0)" }} />
+  const ui = useMemo(
+    () => (
+      <>
+        {/* Left: movement joystick */}
+        <div
+          className="absolute left-3 bottom-3 h-36 w-36 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 touch-none select-none"
+          onTouchStart={onLeftTouchStart}
+          onTouchMove={onLeftTouchMove}
+          onTouchEnd={onLeftTouchEnd}
+          onTouchCancel={onLeftTouchEnd}
+        >
+          <div className="relative h-full w-full grid place-items-center">
+            <div
+              className="h-6 w-6 rounded-full bg-white/50"
+              ref={stickRef}
+              style={{ transform: "translate(0,0)" }}
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Right: look drag area (invisible, but show a subtle hint) */}
-      <div
-        className="absolute right-0 bottom-0 top-0 w-1/2 touch-none select-none"
-        onTouchStart={onRightTouchStart}
-        onTouchMove={onRightTouchMove}
-        onTouchEnd={onRightTouchEnd}
-        onTouchCancel={onRightTouchEnd}
-      >
-        <div className="absolute bottom-3 right-3 text-[10px] text-white/50">drag to look</div>
-      </div>
+        {/* Right: look drag area (invisible, but show a subtle hint) */}
+        <div
+          className="absolute right-0 bottom-0 top-0 w-1/2 touch-none select-none"
+          onTouchStart={onRightTouchStart}
+          onTouchMove={onRightTouchMove}
+          onTouchEnd={onRightTouchEnd}
+          onTouchCancel={onRightTouchEnd}
+        >
+          <div className="absolute bottom-3 right-3 text-[10px] text-white/50">
+            drag to look
+          </div>
+        </div>
 
-      {/* Flashlight toggle button */}
-      <button
-        type="button"
-        aria-label="Toggle flashlight"
-        onClick={onToggleFlashlight}
-        onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFlashlight?.(); }}
-        className="absolute bottom-3 right-3 h-12 px-4 rounded-lg bg-white/10 border border-white/20 text-white text-sm active:scale-95"
-      >
-        Flashlight
-      </button>
-    </>
-  ), []);
+        {/* Flashlight toggle button */}
+        <button
+          type="button"
+          aria-label="Toggle flashlight"
+          onClick={onToggleFlashlight}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleFlashlight?.();
+          }}
+          className="absolute bottom-3 right-3 h-12 px-4 rounded-lg bg-white/10 border border-white/20 text-white text-sm active:scale-95"
+        >
+          Flashlight
+        </button>
+      </>
+    ),
+    []
+  );
 
   if (!visible) return null;
-  return (
-    <div className="pointer-events-auto absolute inset-0 z-20">
-      {ui}
-    </div>
-  );
+  return <div className="pointer-events-auto absolute inset-0 z-20">{ui}</div>;
 }
 
 type TouchLike = { identifier: number; clientX: number; clientY: number };

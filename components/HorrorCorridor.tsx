@@ -32,6 +32,10 @@ export default function HorrorCorridor(
 
       found.visible = false;
 
+      setTimeout(() => {
+        colliderMesh.visible = false;
+      }, 100);
+
       return colliderMesh;
     }
     return null;
@@ -61,7 +65,7 @@ export default function HorrorCorridor(
           <primitive
             object={childrenWall}
             rotation={[Math.PI / -180, 0, 0]}
-            visible={false}
+            onUpdate={(self: any) => self.layers.disable(0)}
           />
         </RigidBody>
       )}

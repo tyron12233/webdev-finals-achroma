@@ -54,12 +54,12 @@ export default function SceneCanvas({
             environmentIntensity={0.7}
           />
 
-          <HorrorCorridor position={[2, -0.005, 2]} rotation={[0, 0, 0]} />
+          <HorrorCorridor position={[2, 0, 2]} rotation={[0, 0, 0]} />
 
           {/* Ground */}
           <RigidBody type="fixed" colliders={false}>
             <mesh
-              position={[0, 0, 0]}
+              position={[0, -0.005, 0]}
               rotation={[-Math.PI / 2, 0, 0]}
               receiveShadow
             >

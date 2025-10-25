@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import useIsTouch from "@/hooks/useIsTouch";
 
 type SubtitleOptions = {
   maxLineChars?: number; // rough wrap width in characters
@@ -87,6 +88,7 @@ function durationFor(line: string, opts: Required<SubtitleOptions>) {
  * Displays one line at a time with configurable timing.
  */
 export default function RadioSubtitleOverlay() {
+  const isTouch = useIsTouch();
   const [current, setCurrent] = useState<string>("");
   const [visible, setVisible] = useState(false);
   const timerRef = useRef<number | null>(null);
@@ -170,7 +172,12 @@ export default function RadioSubtitleOverlay() {
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 bottom-[max(2rem,env(safe-area-inset-bottom))] z-[60] grid place-items-center px-4"
+      className="pointer-events-none fixed inset-x-0 z-[60] grid place-items-center px-4"
+      style={{
+        bottom: isTouch
+          ? "max(11rem, env(safe-area-inset-bottom))"
+          : "max(2rem, env(safe-area-inset-bottom))",
+      }}
       aria-live="polite"
     >
       <div

@@ -99,11 +99,11 @@ export default function RadioNarration() {
             atMs: 4000,
             text: "erratic behavior...",
             options: {
-              lineDurationMs: 600,
+              lineDurationMs: 400,
             },
           },
           {
-            atMs: 4600,
+            atMs: 4400,
             text: "and a persistent, high-pitched wailing. What they found has shocked even veteran officers.",
             options: {
               lineDurationMs: 3000,
@@ -120,11 +120,11 @@ export default function RadioNarration() {
             atMs: 0,
             text: "Inside the residence, a 41-year-old father, whose name is being withheld, was discovered in the master bedroom. ",
             options: {
-              lineDurationMs: 6400,
+              lineDurationMs: 6000,
             },
           },
           {
-            atMs: 6400,
+            atMs: 6200,
             text: " He was unharmed, found sitting in a rocking chair, facing the corner. His wife and two children were found deceased in their beds.",
             options: {
               lineDurationMs: 7100,

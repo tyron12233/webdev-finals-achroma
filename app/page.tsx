@@ -1,7 +1,13 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Environment, ContactShadows, Preload, Stats, AdaptiveDpr } from "@react-three/drei";
+import {
+  Environment,
+  ContactShadows,
+  Preload,
+  Stats,
+  AdaptiveDpr,
+} from "@react-three/drei";
 import { useRef } from "react";
 import { ACESFilmicToneMapping, type Mesh } from "three";
 import FPSControls from "@/components/FPSControls";
@@ -10,7 +16,14 @@ import HorrorCorridor from "@/components/HorrorCorridor";
 import Flashlight from "@/components/Flashlight";
 import MobileControls from "@/components/MobileControls";
 import { useEffect, useState } from "react";
-import { Bloom, ChromaticAberration, EffectComposer, HueSaturation, Noise, Vignette } from "@react-three/postprocessing";
+import {
+  Bloom,
+  ChromaticAberration,
+  EffectComposer,
+  HueSaturation,
+  Noise,
+  Vignette,
+} from "@react-three/postprocessing";
 import Preloader from "@/components/Preloader";
 import { Suspense } from "react";
 import { BlendFunction } from "postprocessing";
@@ -46,7 +59,13 @@ export default function Home() {
         id="r3f-canvas"
         shadows={!isTouch}
         dpr={[1, isTouch ? 1.5 : 2]}
-        gl={{ antialias: !isTouch, powerPreference: "high-performance", stencil: false, alpha: false, precision: isTouch ? "mediump" : "highp" }}
+        gl={{
+          antialias: !isTouch,
+          powerPreference: "high-performance",
+          stencil: false,
+          alpha: false,
+          precision: isTouch ? "mediump" : "highp",
+        }}
         camera={{ position: [0, 1.6, 5], fov: 70 }}
         onCreated={({ gl }) => {
           gl.toneMapping = ACESFilmicToneMapping;
@@ -83,13 +102,14 @@ export default function Home() {
               <CuboidCollider args={[25, 0.1, 25]} position={[0, -0.5, 0]} />
             </RigidBody>
             {!isTouch && (
-            <ContactShadows
-              position={[0, -0.49, 0]}
-              opacity={0.4}
-              scale={30}
-              blur={3}
-              far={15}
-            />)}
+              <ContactShadows
+                position={[0, -0.49, 0]}
+                opacity={0.4}
+                scale={30}
+                blur={3}
+                far={15}
+              />
+            )}
 
             {/* Player character controller (capsule) */}
             <FPSControls
@@ -108,7 +128,10 @@ export default function Home() {
 
             <Vignette eskil={false} offset={0.3} darkness={0.6} />
 
-            <Noise opacity={isTouch ? 0.15 : 0.3} blendFunction={BlendFunction.SOFT_LIGHT} />
+            <Noise
+              opacity={isTouch ? 0.15 : 0.3}
+              blendFunction={BlendFunction.SOFT_LIGHT}
+            />
 
             <ChromaticAberration offset={[0.001, 0.001]} />
           </EffectComposer>

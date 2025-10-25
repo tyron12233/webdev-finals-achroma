@@ -29,3 +29,12 @@ canvas {
   pointer-events: none !important;
   z-index: 50 !important;
 }
+
+/* Improve iOS Safari touch reliability for control overlays */
+.mobile-controls,
+.mobile-controls * {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+}

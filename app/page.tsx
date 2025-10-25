@@ -15,6 +15,7 @@ import { Physics, RigidBody, CuboidCollider } from "@react-three/rapier";
 import HorrorCorridor from "@/components/HorrorCorridor";
 import Flashlight from "@/components/Flashlight";
 import MobileControls from "@/components/MobileControls";
+import TouchDebug from "@/components/TouchDebug";
 import { useEffect, useState } from "react";
 import {
   Bloom,
@@ -41,8 +42,61 @@ function useIsTouch() {
 export default function Home() {
   const isTouch = useIsTouch();
   const [flashOn, setFlashOn] = useState(false);
+  const [locked, setLocked] = useState(false);
+  // Maintain a robust viewport height that adapts on iOS/Android when toolbars show/hide
+  useEffect(() => {
+    const updateVh = () => {
+      if (typeof window === "undefined") return;
+      const vh =
+        (window.innerHeight || document.documentElement.clientHeight) * 0.01;
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
+    };
+    updateVh();
+    window.addEventListener("resize", updateVh);
+    window.addEventListener("orientationchange", updateVh);
+    // Some browsers expose visualViewport which fires resize when UI chrome changes
+    const vv = (window as any).visualViewport as VisualViewport | undefined;
+    vv?.addEventListener?.("resize", updateVh);
+    return () => {
+      window.removeEventListener("resize", updateVh);
+      window.removeEventListener("orientationchange", updateVh);
+      vv?.removeEventListener?.("resize", updateVh as any);
+    };
+  }, []);
+
+  useEffect(() => {
+    const onChange = () => {
+      const pl = document.pointerLockElement;
+      setLocked(!!pl);
+
+      console.log("[PointerLock] changed:", {
+        pointerLockElement: pl,
+        locked: !!pl,
+      });
+    };
+    document.addEventListener("pointerlockchange", onChange);
+    document.addEventListener("pointerlockerror", onChange);
+    return () => {
+      document.removeEventListener("pointerlockchange", onChange);
+      document.removeEventListener("pointerlockerror", onChange);
+    };
+  }, []);
+
+  const requestLock = () => {
+    const el = document.getElementById(
+      "r3f-canvas"
+    ) as HTMLCanvasElement | null;
+    if (el && !isTouch) {
+      try {
+        el.requestPointerLock();
+      } catch {}
+    }
+  };
   return (
-    <div className="fixed inset-0 h-[100dvh] w-full select-none touch-none">
+    <div
+      className="fixed inset-0 w-full select-none touch-none"
+      style={{ height: "calc(var(--vh, 1vh) * 100)" }}
+    >
       {/* Hint overlay */}
       {!isTouch && (
         <div className="pointer-events-none absolute inset-x-0 top-4 z-10 grid place-items-center text-xs text-white/80">
@@ -148,6 +202,19 @@ export default function Home() {
       <Preloader />
       {isTouch && (
         <MobileControls onToggleFlashlight={() => setFlashOn((v) => !v)} />
+      )}
+      {isTouch && <TouchDebug />}
+      {/* Fallback: clickable overlay to force pointer lock on desktop if PLC fails */}
+      {!isTouch && !locked && (
+        <button
+          aria-label="Click to start (locks cursor)"
+          className="absolute inset-0 z-20 grid place-items-center bg-black/20 backdrop-blur-[1px] text-white"
+          onClick={requestLock}
+        >
+          <div className="pointer-events-none select-none rounded-md border border-white/20 bg-black/50 px-4 py-3 text-sm shadow-lg">
+            Click to start · cursor will lock
+          </div>
+        </button>
       )}
       {/* Crosshair */}
       <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center">

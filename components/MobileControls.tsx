@@ -242,7 +242,11 @@ export default function MobileControls({ onToggleFlashlight }: Props) {
   );
 
   if (!visible) return null;
-  return <div className="pointer-events-auto absolute inset-0 z-20">{ui}</div>;
+  return (
+    <div className="pointer-events-auto absolute inset-0 z-20 mobile-controls">
+      {ui}
+    </div>
+  );
 }
 
 type TouchLike = { identifier: number; clientX: number; clientY: number };

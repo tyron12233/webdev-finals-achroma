@@ -106,7 +106,12 @@ export default function FPSControls({
   const dir = useMemo(() => new Vector3(), []);
   const worldDir = useMemo(() => new Vector3(), []);
   const upVec = useMemo(() => new Vector3(0, 1, 0), []);
-  const bobRef = useRef({ phase: 0, intensity: 0, lastPhase: 0, smoothedHz: 0 });
+  const bobRef = useRef({
+    phase: 0,
+    intensity: 0,
+    lastPhase: 0,
+    smoothedHz: 0,
+  });
   const bodyRef = useRef<RapierRigidBody>(null);
   // Debug overlay data stream
   // Defer import type to avoid client/server mismatch
@@ -129,7 +134,8 @@ export default function FPSControls({
 
   // Detect touch devices to disable pointer lock and use touch look instead
   useEffect(() => {
-    const touch = ("ontouchstart" in window) || (navigator.maxTouchPoints ?? 0) > 0;
+    const touch =
+      "ontouchstart" in window || (navigator.maxTouchPoints ?? 0) > 0;
     setIsTouch(touch);
   }, []);
 
@@ -163,7 +169,7 @@ export default function FPSControls({
     const hasMobileMove = Math.abs(axes.x) > 0.001 || Math.abs(axes.y) > 0.001;
     const usingTouch = isTouchMode();
 
-    const isMoving = (keys.w || keys.a || keys.s || keys.d) || hasMobileMove;
+    const isMoving = keys.w || keys.a || keys.s || keys.d || hasMobileMove;
 
     // Get forward direction from camera (flattened Y)
     camera.getWorldDirection(worldDir);
@@ -220,34 +226,47 @@ export default function FPSControls({
       const normalizedSpeed = Math.min(1, speed2D / Math.max(0.001, speed));
       // Intensity follows normalized speed rather than just on/off
       const targetIntensity = normalizedSpeed;
-      bobRef.current.intensity += (targetIntensity - bobRef.current.intensity) * Math.min(1, bobSmoothing * delta);
+      bobRef.current.intensity +=
+        (targetIntensity - bobRef.current.intensity) *
+        Math.min(1, bobSmoothing * delta);
 
       // Cadence scales between min..max based on speed
-      const targetHz = minStepFrequency + (maxStepFrequency - minStepFrequency) * normalizedSpeed;
+      const targetHz =
+        minStepFrequency +
+        (maxStepFrequency - minStepFrequency) * normalizedSpeed;
       // Smooth cadence to avoid sudden jumps
-      bobRef.current.smoothedHz += (targetHz - bobRef.current.smoothedHz) * Math.min(1, stepSmoothing * delta);
+      bobRef.current.smoothedHz +=
+        (targetHz - bobRef.current.smoothedHz) *
+        Math.min(1, stepSmoothing * delta);
       stepHz = bobRef.current.smoothedHz;
       if (bobRef.current.intensity > 0.001 && stepHz > 0.0001) {
         bobRef.current.lastPhase = bobRef.current.phase;
-        bobRef.current.phase = (bobRef.current.phase + stepHz * 2 * Math.PI * delta) % (Math.PI * 2);
+        bobRef.current.phase =
+          (bobRef.current.phase + stepHz * 2 * Math.PI * delta) % (Math.PI * 2);
 
         // Optional footstep callback at phase crossings (0 => right, pi => left by convention)
         if (onFootstep) {
           const from = bobRef.current.lastPhase;
           const to = bobRef.current.phase;
           const crossed = (thr: number) =>
-            (from < thr && to >= thr) || (from > to && (from < thr || to >= thr)); // handle wrap-around
+            (from < thr && to >= thr) ||
+            (from > to && (from < thr || to >= thr)); // handle wrap-around
           if (crossed(0)) onFootstep("right");
           if (crossed(Math.PI)) onFootstep("left");
         }
       }
 
-      ampScale = (1 - speedAmplitudeInfluence) + speedAmplitudeInfluence * normalizedSpeed;
+      ampScale =
+        1 - speedAmplitudeInfluence + speedAmplitudeInfluence * normalizedSpeed;
       // Two vertical peaks per cycle + subtle 4th harmonic for a quick-drop feel
       const phi = bobRef.current.phase;
       const sin2 = Math.sin(phi * 2);
       const shapedVertical = sin2 + verticalHarmonic * Math.sin(phi * 4);
-      vertical = shapedVertical * verticalBobAmplitude * bobRef.current.intensity * ampScale;
+      vertical =
+        shapedVertical *
+        verticalBobAmplitude *
+        bobRef.current.intensity *
+        ampScale;
 
       // Lateral sway stronger when moving forward/back, lighter on pure strafe
       // Compute forward alignment of velocity
@@ -258,8 +277,14 @@ export default function FPSControls({
         // worldDir is normalized forward
         forwardAlign = Math.abs(velDirX * worldDir.x + velDirZ * worldDir.z); // 0..1
       }
-      const lateralWeight = strafeLateralFactor + (1 - strafeLateralFactor) * forwardAlign;
-      lateral = Math.sin(phi) * lateralBobAmplitude * lateralWeight * bobRef.current.intensity * ampScale;
+      const lateralWeight =
+        strafeLateralFactor + (1 - strafeLateralFactor) * forwardAlign;
+      lateral =
+        Math.sin(phi) *
+        lateralBobAmplitude *
+        lateralWeight *
+        bobRef.current.intensity *
+        ampScale;
     }
 
     // Apply mobile look deltas to camera
@@ -298,7 +323,7 @@ export default function FPSControls({
   useEffect(() => {
     const body = bodyRef.current;
     if (!body) return;
-    const startY = baseOffset + 0.01; // feet slightly above ground plane
+    const startY = baseOffset + 0.01; 
     body.setTranslation({ x: 0, y: startY, z: 5 }, true);
   }, [baseOffset]);
 
@@ -307,8 +332,19 @@ export default function FPSControls({
       {/* Pointer lock for mouse look (disabled on touch devices) */}
       {!isTouch && <PointerLockControls selector="#r3f-canvas" />}
 
+      {isTouch && (
+        <div
+          className="absolute inset-0 z-10 grid place-items-center"
+          aria-hidden
+        >
+          <p className="pointer-events-none select-none text-center text-sm text-white/50">
+            Drag anywhere to look around
+          </p>
+        </div>
+      )}
+
       {/* Debug overlay (top-left fixed) */}
-      {debugOn && (
+      {debugOn &&
         // Lazy import to avoid circular dep in SSR paths; kept simple here
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         (() => {
@@ -321,8 +357,7 @@ export default function FPSControls({
               dataRef={debugDataRef}
             />
           );
-        })()
-      )}
+        })()}
 
       {/* Capsule-based player body */}
       <RigidBody
@@ -349,7 +384,10 @@ export default function FPSControls({
             </mesh>
           </>
         )}
-        <CapsuleCollider args={[halfHeight, capsuleRadius]} position={[0, baseOffset, 0]} />
+        <CapsuleCollider
+          args={[halfHeight, capsuleRadius]}
+          position={[0, baseOffset, 0]}
+        />
       </RigidBody>
     </>
   );

@@ -58,14 +58,6 @@ export default function SceneCanvas({
 
           {/* Ground */}
           <RigidBody type="fixed" colliders={false}>
-            <mesh
-              position={[0, -0.005, 0]}
-              rotation={[-Math.PI / 2, 0, 0]}
-              receiveShadow
-            >
-              <planeGeometry args={[50, 50]} />
-              <meshStandardMaterial color="#fff" />
-            </mesh>
             <CuboidCollider args={[25, 0.1, 25]} position={[0, -0.5, 0]} />
           </RigidBody>
 
@@ -80,7 +72,7 @@ export default function SceneCanvas({
           )}
 
           <FPSControls
-            speed={1.8}
+            speed={1.2}
             eyeHeight={3.35}
             capsuleHeight={1.85}
             capsuleRadius={0.25}
@@ -93,7 +85,7 @@ export default function SceneCanvas({
         <Effects isTouch={isTouch} />
         {isTouch && <AdaptiveDpr pixelated />}
 
-        {!isTouch && <Stats className="stats-top-right" />}
+        <Stats className="stats-top-right" />
 
         <Preload all />
       </Suspense>

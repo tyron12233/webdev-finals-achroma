@@ -12,8 +12,8 @@ import { BlendFunction } from "postprocessing";
 export default function Effects({ isTouch }: { isTouch: boolean }) {
   return (
     <EffectComposer enableNormalPass multisampling={isTouch ? 0 : 4}>
-      <HueSaturation saturation={-0.3} />
-      <Vignette eskil={false} offset={0.3} darkness={0.6} />
+      <HueSaturation saturation={-0.65} />
+      <Vignette eskil={false} offset={0.3} darkness={0.9} />
       <Noise
         opacity={isTouch ? 0.15 : 0.3}
         blendFunction={BlendFunction.SOFT_LIGHT}

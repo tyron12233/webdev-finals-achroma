@@ -120,17 +120,22 @@ export default function RadioSubtitleOverlay() {
 
   useEffect(() => {
     const onSub = (e: Event) => {
-      const detail = (e as CustomEvent).detail as {
-        text?: string;
-        options?: SubtitleOptions;
-        append?: boolean;
-      } | undefined;
+      const detail = (e as CustomEvent).detail as
+        | {
+            text?: string;
+            options?: SubtitleOptions;
+            append?: boolean;
+          }
+        | undefined;
       const text = normalizeSpaces(detail?.text ?? "");
       const append = !!detail?.append;
 
       // Use options provided by RadioNarration directly; fallback to current values for any omitted keys
       if (detail?.options) {
-        optsRef.current = { ...optsRef.current, ...detail.options } as Required<SubtitleOptions>;
+        optsRef.current = {
+          ...optsRef.current,
+          ...detail.options,
+        } as Required<SubtitleOptions>;
       }
 
       if (!append) {
@@ -164,8 +169,15 @@ export default function RadioSubtitleOverlay() {
   if (!current) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-[max(2rem,env(safe-area-inset-bottom))] z-[60] grid place-items-center px-4" aria-live="polite">
-      <div className={`max-w-3xl w-full text-center transition-opacity duration-180 ${visible ? "opacity-100" : "opacity-0"}`}>
+    <div
+      className="pointer-events-none fixed inset-x-0 bottom-[max(2rem,env(safe-area-inset-bottom))] z-[60] grid place-items-center px-4"
+      aria-live="polite"
+    >
+      <div
+        className={`max-w-3xl w-full text-center transition-opacity duration-180 ${
+          visible ? "opacity-100" : "opacity-0"
+        }`}
+      >
         <p
           className="mx-auto text-sm sm:text-base md:text-lg leading-relaxed font-medium tracking-wide text-white"
           style={{

@@ -78,9 +78,9 @@ export default function RadioNarration() {
             text: " Maple Creek neighborhood that has left residents in stunned silence.",
             atMs: 4900 + 3000,
             options: {
-                lineDurationMs: 2000
-            }
-          }
+              lineDurationMs: 2000,
+            },
+          },
         ],
         subtitle:
           "...and the time is now 2:17 AM. We return to our top story, a developing situation in the Maple Creek neighborhood that has left residents in stunned silence.",
@@ -88,27 +88,27 @@ export default function RadioNarration() {
       {
         url: "/audio/radio/paragraph_2.wav",
         subs: [
-            {
+          {
             atMs: 0,
             text: "Police were called to a small suburban home earlier this evening after neighbors reported...",
             options: {
               lineDurationMs: 4000,
             },
-        },
-            {
-            atMs: 4100,
+          },
+          {
+            atMs: 4000,
             text: "erratic behavior...",
             options: {
-              lineDurationMs: 1000,
+              lineDurationMs: 600,
             },
           },
           {
-            atMs: 5100,
+            atMs: 4600,
             text: "and a persistent, high-pitched wailing. What they found has shocked even veteran officers.",
             options: {
-                lineDurationMs: 3000
-            }
-          }
+              lineDurationMs: 3000,
+            },
+          },
         ],
         subtitle:
           "Police were called to a small suburban home earlier this evening after neighbors reported... erratic behavior... and a persistent, high-pitched wailing. What they found has shocked even veteran officers.",
@@ -145,7 +145,10 @@ export default function RadioNarration() {
   );
 
   // Helper to decode a wav into AudioBuffer via SoundManager's AudioContext
-  const decode = async (url: string, signal?: AbortSignal): Promise<AudioBuffer> => {
+  const decode = async (
+    url: string,
+    signal?: AbortSignal
+  ): Promise<AudioBuffer> => {
     const res = await fetch(url, { signal });
     if (!res.ok) throw new Error(`Failed to fetch ${url}`);
     const arr = await res.arrayBuffer();
@@ -154,7 +157,8 @@ export default function RadioNarration() {
 
   // Start sequence when assets finished AND audio context is running
   useEffect(() => {
-    const done = !active && (progress >= 100 || (loaded > 0 && loaded >= total));
+    const done =
+      !active && (progress >= 100 || (loaded > 0 && loaded >= total));
     if (!done) return;
 
     // If already started, skip
@@ -170,14 +174,21 @@ export default function RadioNarration() {
         const onPl = async (e: Event) => {
           const detail = (e as CustomEvent).detail as { locked: boolean };
           if (detail?.locked) {
-            window.removeEventListener("__pointerlock_change__", onPl as EventListener);
+            window.removeEventListener(
+              "__pointerlock_change__",
+              onPl as EventListener
+            );
             await resume();
             begin();
           }
         };
-        window.addEventListener("__pointerlock_change__", onPl as EventListener, {
-          once: true,
-        });
+        window.addEventListener(
+          "__pointerlock_change__",
+          onPl as EventListener,
+          {
+            once: true,
+          }
+        );
         // Also fallback to first key/pointer
         const onInteract = async () => {
           window.removeEventListener("pointerdown", onInteract);
@@ -251,13 +262,20 @@ export default function RadioNarration() {
           // Dispatch subtitles for this paragraph
           if (para.subs && para.subs.length > 0) {
             para.subs.forEach((sub, idx) => {
-              const delay = Math.max(0, sub.atMs ?? (idx === 0 ? 0 : idx * 1000));
+              const delay = Math.max(
+                0,
+                sub.atMs ?? (idx === 0 ? 0 : idx * 1000)
+              );
               const handle = window.setTimeout(() => {
                 if (ac.signal.aborted || ended) return;
                 const evt = new CustomEvent("__radio_subtitle__", {
                   detail: {
                     text: sub.text,
-                    options: { ...SUBTITLE_OPTS, ...(para.options ?? {}), ...(sub.options ?? {}) },
+                    options: {
+                      ...SUBTITLE_OPTS,
+                      ...(para.options ?? {}),
+                      ...(sub.options ?? {}),
+                    },
                     append: idx > 0,
                   },
                 });
@@ -294,7 +312,9 @@ export default function RadioNarration() {
       // Clear subtitle
       setCurrentIndex(null);
       window.dispatchEvent(
-        new CustomEvent("__radio_subtitle__", { detail: { text: "", append: false } })
+        new CustomEvent("__radio_subtitle__", {
+          detail: { text: "", append: false },
+        })
       );
     })();
   };

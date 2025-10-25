@@ -5,7 +5,10 @@ type Props = {
   canvasId?: string;
 };
 
-export default function PointerLockOverlay({ visible, canvasId = "r3f-canvas" }: Props) {
+export default function PointerLockOverlay({
+  visible,
+  canvasId = "r3f-canvas",
+}: Props) {
   if (!visible) return null;
   const requestLock = () => {
     const el = document.getElementById(canvasId) as HTMLCanvasElement | null;

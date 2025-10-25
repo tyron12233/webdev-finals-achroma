@@ -323,7 +323,7 @@ export default function FPSControls({
   useEffect(() => {
     const body = bodyRef.current;
     if (!body) return;
-    const startY = baseOffset + 0.01; 
+    const startY = baseOffset + 0.01;
     body.setTranslation({ x: 0, y: startY, z: 5 }, true);
   }, [baseOffset]);
 
@@ -331,17 +331,6 @@ export default function FPSControls({
     <>
       {/* Pointer lock for mouse look (disabled on touch devices) */}
       {!isTouch && <PointerLockControls selector="#r3f-canvas" />}
-
-      {isTouch && (
-        <div
-          className="absolute inset-0 z-10 grid place-items-center"
-          aria-hidden
-        >
-          <p className="pointer-events-none select-none text-center text-sm text-white/50">
-            Drag anywhere to look around
-          </p>
-        </div>
-      )}
 
       {/* Debug overlay (top-left fixed) */}
       {debugOn &&

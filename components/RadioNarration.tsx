@@ -231,7 +231,7 @@ export default function RadioNarration() {
           src.buffer = buffer;
           const groupGain = sound.getGroupNode("ambient");
           const radioGain = sound.context.createGain();
-          radioGain.gain.value = 0.25; // reduce radio loudness (0..1)
+          radioGain.gain.value = 0.15; // reduce radio loudness (0..1)
           src.connect(radioGain);
           radioGain.connect(groupGain);
 

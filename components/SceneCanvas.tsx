@@ -22,10 +22,12 @@ import RadioNarration from "@/components/RadioNarration";
 export default function SceneCanvas({
   isTouch,
   flashOn,
+  started = false,
   onPointerLockChange,
 }: {
   isTouch: boolean;
   flashOn: boolean;
+  started?: boolean;
   onPointerLockChange?: (locked: boolean) => void;
 }) {
   // Access sound inside Canvas to resume on pointer lock and trigger SFX
@@ -54,7 +56,7 @@ export default function SceneCanvas({
       <Suspense fallback={null}>
         <SoundProvider>
           <SoundBridge onPointerLockChange={onPointerLockChange} />
-          <RadioNarration />
+          {started && <RadioNarration />}
           <Physics gravity={[0, -9.81, 0]} debug={!isTouch}>
             <Environment
               preset="night"

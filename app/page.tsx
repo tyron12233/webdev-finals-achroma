@@ -9,10 +9,12 @@ import useViewportVH from "@/hooks/useViewportVH";
 import SceneCanvas from "@/components/SceneCanvas";
 import PointerLockOverlay from "@/components/PointerLockOverlay";
 import RadioSubtitleOverlay from "@/components/RadioSubtitleOverlay";
+import TitleScreen from "@/components/TitleScreen";
 
 export default function Home() {
   const isTouch = useIsTouch();
   const [flashOn, setFlashOn] = useState(false);
+  const [started, setStarted] = useState(false);
   const [locked, setLocked] = useState(false);
   // Keep viewport height synced to visible area
   useViewportVH();
@@ -23,12 +25,12 @@ export default function Home() {
       style={{ height: "calc(var(--vh, 1vh) * 100)" }}
     >
       {/* Hint overlay */}
-      {!isTouch && (
+      {started && !isTouch && (
         <div className="pointer-events-none absolute inset-x-0 top-4 z-10 grid place-items-center text-xs text-white/80">
           <p>Click the canvas to lock pointer · WASD to move · Esc to unlock</p>
         </div>
       )}
-      {isTouch && (
+      {started && isTouch && (
         <div className="pointer-events-none absolute inset-x-0 top-4 z-10 grid place-items-center text-xs text-white/80">
           <p>Use left joystick to move · drag anywhere to look</p>
         </div>
@@ -37,6 +39,7 @@ export default function Home() {
       <SceneCanvas
         isTouch={isTouch}
         flashOn={flashOn}
+        started={started}
         onPointerLockChange={(v) => {
           console.log("[page.tsx] pointer lock change:", v);
           setLocked(v);
@@ -44,17 +47,21 @@ export default function Home() {
       />
       <Preloader />
       {/* Radio narration subtitles (screen-space UI, outside Canvas) */}
-      <RadioSubtitleOverlay />
-      {isTouch && (
+      {started && <RadioSubtitleOverlay />}
+      {/* Title / Start overlay after preload */}
+      <TitleScreen started={started} onStart={() => setStarted(true)} />
+      {isTouch && started && (
         <MobileControls onToggleFlashlight={() => setFlashOn((v) => !v)} />
       )}
-      {isTouch && <TouchDebug />}
+      {isTouch && started && <TouchDebug />}
       {/* Fallback: clickable overlay to force pointer lock on desktop if PLC fails */}
-      <PointerLockOverlay visible={!isTouch && !locked} />
+      <PointerLockOverlay visible={started && !isTouch && !locked} />
       {/* Crosshair */}
-      <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center">
-        <div className="h-3 w-3 rounded-full border border-white/60" />
-      </div>
+      {started && (
+        <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center">
+          <div className="h-3 w-3 rounded-full border border-white/60" />
+        </div>
+      )}
     </div>
   );
 }
